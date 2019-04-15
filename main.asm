@@ -18,8 +18,9 @@ P9		EQU		d'23'
 P10		EQU		d'24'
 P11		EQU		d'25'
 P12		EQU		d'26'
-FLAG	EQU		d'27'
-STAR	EQU		d'28'
+FLAG	EQU		d'27'	
+STAR	EQU		d'28'	;The 2 LSB are for selecting modes in Menu
+						;The 2 MSB are for determining phase
 
       	ORG    	0x0
 		GOTO	START
@@ -90,14 +91,6 @@ ET		MOVWF	PORTA
 		RETURN
 
 ;interrupt routines
-INTRB4	CALL	DELAY1
-		BTFSS	PORTB,4
-		BSF		PORTB,1
-		BTFSC	PORTB,4
-		BCF		PORTB,1
-		BCF		INTCON,RBIF
-		RETFIE
-
 INTRB0	CALL 	DELAY1
 		BTFSS	PORTB,0
 		CLRF	PORTA
@@ -105,7 +98,17 @@ INTRB0	CALL 	DELAY1
 		RETFIE
 
 INTRB5	CALL	DELAY1		;DEBOUNCE
-		BTFSS	PORTB,5
+		BTFSC	STAR,7
+		GOTO	INT23
+		BTFSC	STAR,6
+		GOTO	INT1
+
+;;MMENU
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		
+MMENU	BTFSS	PORTB,7
+		GOTO	OK0
+		BTFSS	PORTB,5		
 		GOTO	ACT1
 		GOTO	END5
 
@@ -155,8 +158,35 @@ ACT3	INCF	STAR
 		MOVLW	B'01011'
 		CALL 	ET
 		CALL	PRINTST
-		GOTO	END5	
+		GOTO	END5
 
+OK0		BTFSC	STAR,1
+		GOTO	SET3
+		BTFSC	STAR,0
+		GOTO	SET1
+		GOTO	SET2
+		GOTO	END5
+
+SET3	BSF		STAR,7
+		BSF		STAR,6
+		GOTO	END5
+
+SET2	BSF		STAR,7
+		BCF		STAR,6
+		GOTO	END5
+
+SET1	BCF		STAR,7
+		BSF		STAR,6
+		GOTO	END5		
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+INT1
+
+INT23	BTFSC	STAR,6
+		GOTO	INT3
+		
+INT2
+
+INT3
 
 END5	BCF		INTCON,RBIF
 		RETFIE
