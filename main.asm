@@ -31,9 +31,9 @@ STAR	EQU		d'28'	;The 2 LSB are for selecting modes in Menu
 		GOTO	INTRB5
 ;		BTFSC	INTCON,T0IF
 ;		GOTO	TIMERZ
-		
 
-		;init I/O ports
+
+;;;;INTIALIZING IO PORTS;;;;
 START	BSF		STATUS,RP0
 		CLRF	TRISA		;LCD DB(4,7) = RA(0-3)	//	RS = RA4
 		CLRF	TRISB		;LCD ENABLE = RB1	// RED LED = RB2
@@ -102,16 +102,12 @@ INTRB5	CALL	DELAY1		;DEBOUNCE
 		GOTO	INT23
 		BTFSC	STAR,6
 		GOTO	INT1
-
-;;MMENU
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		
 MMENU	BTFSS	PORTB,7
 		GOTO	OK0
 		BTFSS	PORTB,5		
 		GOTO	ACT1
 		GOTO	END5
-
 
 ACT1	BTFSS	STAR,1
 		GOTO	ACT2
@@ -131,7 +127,6 @@ ACT1	BTFSS	STAR,1
 
 		GOTO	END5
 		
-
 ACT2	INCF	STAR
 		BTFSS	STAR,0
 		GOTO	ACT3
