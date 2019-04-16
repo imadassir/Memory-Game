@@ -2,10 +2,13 @@
         list    p=16f84A
         radix   hex
         include "p16f84A.inc"
-        
+;;;;;INTIAL VARIABLES;;;; 
+;;;;COUNT1->3:USED FOR DELAYS;;;;       
 COUNT1  EQU    	d'12'
 COUNT2	EQU		d'13'
 COUNT3	EQU		d'14'
+;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;P1->P12 :designate the positions of the letters;;;;;
 P1		EQU		d'15'
 P2		EQU		d'16'
 P3		EQU		d'17'
@@ -18,9 +21,14 @@ P9		EQU		d'23'
 P10		EQU		d'24'
 P11		EQU		d'25'
 P12		EQU		d'26'
+;;;;;;;;;;;;;;;;;;;;;;;
+;;;;USED IN INTERRUPT ROUTINE;;;;
 FLAG	EQU		d'27'	
-STAR	EQU		d'28'	;The 2 LSB are for selecting modes in Menu
-						;The 2 MSB are for determining phase
+STAR	EQU		d'28'	
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;The 2 LSB are for selecting modes in Menu
+;The 2 MSB are for determining phase
 
       	ORG    	0x0
 		GOTO	START
@@ -33,19 +41,20 @@ STAR	EQU		d'28'	;The 2 LSB are for selecting modes in Menu
 ;		GOTO	TIMERZ
 		
 
-		;init I/O ports
+;;;;INTIALIZING IO PORTS;;;;
 START	BSF		STATUS,RP0
 		CLRF	TRISA		;LCD DB(4,7) = RA(0-3)	//	RS = RA4
-		CLRF	TRISB		;LCD ENABLE = RB1	// RED LED = RB2
-							;GREEN LED = RB3	//	BUZZER=RB0
-		BSF		TRISB,4		;left
-		BSF		TRISB,5		;right
-		BSF		TRISB,6		;up/down
-		BSF		TRISB,7		;confirm
-		MOVLW	B'10000111'
-		MOVWF	OPTION_REG
+		CLRF	TRISB		;LCD ENABLE = RB1		// RED LED = RB2
+							;GREEN LED = RB3		//	BUZZER=RB0
+		BSF		TRISB,4		;LEFT
+		BSF		TRISB,5		;RIGHT
+		BSF		TRISB,6		;UP/DOWN
+		BSF		TRISB,7		;CONFIRM
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		MOVLW	B'10000111'	;W = 10000111
+		MOVWF	OPTION_REG	;OPTION_REG = W
 		BCF		STATUS,RP0
-		CLRF	PORTA
+		CLRF	PORTA		
 		CLRF	PORTB
 		CLRF	INTCON
 		BSF		INTCON,RBIE
