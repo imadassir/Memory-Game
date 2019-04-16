@@ -24,6 +24,8 @@ P12		EQU		d'26'
 ;;;;;;;;;;;;;;;;;;;;;;;
 FLAG	EQU		d'27'	
 STAR	EQU		d'28'	;2LSB:SELECT MODES,2MSB:DETERMING PHASE
+LCDAL	EQU		d'29'	;LCD ADDRESS LOWER BITS
+LCDAU	EQU		d'30'	;LCD ADDRESS LOWER BITS
 					
       	ORG    	0x0
 		GOTO	START
@@ -181,7 +183,8 @@ SET1	BCF		STAR,7
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 INT1	BTFSS	PORTB,6
 		CALL	JL
-
+		BTFSS	PORTB,5
+		CALL	GOR
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -260,6 +263,8 @@ INITPOS	MOVLW	D'12'
 		MOVWF	P12
 		MOVLW	D'0'
 		MOVWF	STAR
+		MOVLW	B'01000'
+		MOVWF	LCDAU
 		RETURN
 
 WLCM	CALL	PRINTSP
@@ -312,6 +317,10 @@ MODE1	CALL	CLEAR
 		MOVLW	B'00000'
 		CALL	ET
 		CALL	UTIL			;PRINT BOXES
+		MOVLW	B'00000'		;RETURN HOME
+		CALL	ET
+		MOVLW	B'00010'
+		CALL	ET
 		RETURN
 
 ;LETTERS FUNCTIONS
@@ -436,13 +445,38 @@ L1		CALL 	PRINTPH
 		DECFSZ	COUNT3,F
 		GOTO	L1
 		RETURN
-
-JL		MOVLW	B'01100'		;JUMP LINE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+JL		BTFSC	STAR,5		;CHECK FLAG
+		GOTO	SUB64
+		BSF		LCDAU,2		;GO	TO LINE 2
+		BSF		STAR,5
+		GOTO	ENDJL
+SUB64	BCF		LCDAU,2		;GO BACK TO LINE 1
+		BCF		STAR,5
+ENDJL	MOVFW	LCDAU
 		CALL	ET
-		MOVLW	B'00000'
+		MOVFW	LCDAL
 		CALL	ET
-		RETURN
+		GOTO	END5		
+		
+GOR		BTFSC	LCDAL,2
+		GOTO	CHECK
+		GOTO	INCR	
 
+
+CHECK	BTFSC	LCDAL,0
+		CALL	BUZZER
+		GOTO	INCR
+
+INCR	INCF	LCDAL
+		MOVFW	LCDAU
+		CALL	ET
+		MOVFW	LCDAL
+		CALL	ET
+		GOTO	END5
+
+BUZZER	GOTO	END5
+					
 ;CLEAR FUNCTION
 CLEAR	MOVLW	B'00000'
 		CALL	ET
