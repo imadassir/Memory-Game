@@ -2,13 +2,10 @@
         list    p=16f84A
         radix   hex
         include "p16f84A.inc"
-;;;;;INTIAL VARIABLES;;;; 
-;;;;COUNT1->3:USED FOR DELAYS;;;;
+        
 COUNT1  EQU    	d'12'
 COUNT2	EQU		d'13'
 COUNT3	EQU		d'14'
-;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;P1->P12 :designate the positions of the letters;;;;;
 P1		EQU		d'15'
 P2		EQU		d'16'
 P3		EQU		d'17'
@@ -21,10 +18,10 @@ P9		EQU		d'23'
 P10		EQU		d'24'
 P11		EQU		d'25'
 P12		EQU		d'26'
-;;;;;;;;;;;;;;;;;;;;;;;
 FLAG	EQU		d'27'	
-STAR	EQU		d'28'	;2LSB:SELECT MODES,2MSB:DETERMING PHASE
-					
+STAR	EQU		d'28'	;The 2 LSB are for selecting modes in Menu
+						;The 2 MSB are for determining phase
+
       	ORG    	0x0
 		GOTO	START
 		ORG		0x04
@@ -37,16 +34,14 @@ STAR	EQU		d'28'	;2LSB:SELECT MODES,2MSB:DETERMING PHASE
 		
 
 		;init I/O ports
-;;;;INTIALIZING IO PORTS;;;;
 START	BSF		STATUS,RP0
 		CLRF	TRISA		;LCD DB(4,7) = RA(0-3)	//	RS = RA4
 		CLRF	TRISB		;LCD ENABLE = RB1	// RED LED = RB2
 							;GREEN LED = RB3	//	BUZZER=RB0
-		BSF		TRISB,4		;LEFT
-		BSF		TRISB,5		;RIGHT
-		BSF		TRISB,6		;UP/DOWM
-		BSF		TRISB,7		;CONFIRM
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		BSF		TRISB,4		;left
+		BSF		TRISB,5		;right
+		BSF		TRISB,6		;up/down
+		BSF		TRISB,7		;confirm
 		MOVLW	B'10000111'
 		MOVWF	OPTION_REG
 		BCF		STATUS,RP0
@@ -92,8 +87,7 @@ ET		MOVWF	PORTA
 		BSF 	PORTB,1
 		NOP
 		BCF		PORTB,1
-		CALL 	DELAY1
-		CALL	DELAY1			;change to <40ms to write faster
+		CALL 	DELAY			;change to <40ms to write faster
 		RETURN
 
 ;interrupt routines
@@ -186,7 +180,8 @@ SET1	BCF		STAR,7
 		CALL	MODE1
 		GOTO	END5		
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-INT1	
+INT1	BTFSS	PORTB,6
+		CALL	JL
 
 
 
@@ -224,16 +219,9 @@ LOOP3   INCFSZ	COUNT1,F
 		GOTO	LOOP3 
 		RETURN
 
-DELAY3S MOVLW	D'37'
-		MOVWF	COUNT3
-D3L		DECFSZ	COUNT3,F
-		GOTO	D3LA
-		RETURN	
-D3LA	CALL	DELAY
-		GOTO	D3L
-		 
-DELAY1  MOVLW   H'06'		;1ms delay
-        MOVWF   COUNT1
+
+DELAY1  MOVLW    H'06'		;1ms delay
+        MOVWF    COUNT1
             
 LOOP    NOP
 		INCFSZ	COUNT1,F
@@ -268,11 +256,7 @@ INITPOS	MOVLW	D'12'
 		MOVWF	STAR
 		RETURN
 
-WLCM	CALL	PRINTSP
-		CALL	PRINTSP
-		CALL	PRINTSP
-		CALL	PRINTSP
-		CALL	PRINTM
+WLCM	CALL	PRINTM
 		CALL	PRINTE
 		CALL	PRINTM
 		CALL	PRINTSP
@@ -280,7 +264,9 @@ WLCM	CALL	PRINTSP
 		CALL	PRINTA
 		CALL	PRINTM
 		CALL	PRINTE
-		CALL	DELAY3S
+		CALL	DELAY
+		CALL	DELAY
+		CALL	DELAY
 		CALL	CLEAR
 		RETURN
 
@@ -304,7 +290,6 @@ MENU	CALL	PRINTM
 		CALL	PRINTST
 		RETURN
 
-	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MODE1	CALL	CLEAR
 		CALL	UTIL			;PRINT BOXES
@@ -313,11 +298,12 @@ MODE1	CALL	CLEAR
 		CALL	PRINTS
 		CALL	UTIL2
 		CALL	PRINTW
-		MOVLW	B'01100'		;JUMP LINE
-		CALL	ET
+		CALL	JL
+		CALL	UTIL			;PRINT BOXES
 		MOVLW	B'00000'
 		CALL	ET
-		CALL	UTIL			;PRINT BOXES
+		MOVLW	B'00010'
+		CALL	ET
 		RETURN
 
 ;LETTERS FUNCTIONS
@@ -443,6 +429,11 @@ L1		CALL 	PRINTPH
 		GOTO	L1
 		RETURN
 
+JL		MOVLW	B'01100'		;JUMP LINE
+		CALL	ET
+		MOVLW	B'00000'
+		CALL	ET
+		RETURN
 
 ;CLEAR FUNCTION
 CLEAR	MOVLW	B'00000'
