@@ -96,7 +96,7 @@ ET		MOVWF	PORTA
 		NOP
 		BCF		PORTB,1
 		CALL 	DELAY1
-		CALL	DELAY1			;change to <40ms to write faster
+		CALL	DELAY1			;2ms delay to make changes to LCD faster
 		RETURN
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;INTERUPT ROUTINES;;;;
@@ -323,10 +323,7 @@ MODE1	CALL	CLEAR
 		MOVLW	B'00000'
 		CALL	ET
 		CALL	UTIL			;PRINT BOXES
-		MOVLW	B'00000'		;RETURN HOME
-		CALL	ET
-		MOVLW	B'00010'
-		CALL	ET
+		CALL	LCDGH
 		RETURN
 
 ;LETTERS FUNCTIONS
@@ -452,6 +449,21 @@ L1		CALL 	PRINTPH
 		GOTO	L1
 		RETURN
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+SLCDA	MOVF	LCDAU,W			;SET LCD ADDRESS
+		CALL	ET
+		MOVF	LCDAL,W
+		CALL	ET
+		RETURN
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LCDGH	MOVLW	B'00000'	;LCD GO HOME
+		CALL	ET
+		MOVLW	B'00010'
+		CALL	ET
+		CLRF	LCDAL
+		MOVLW	D'15'
+		MOVWF	FSR
+		RETURN
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 JL		BTFSC	STAR,5		;CHECK FLAG
 		GOTO	SUB64
 		BSF		LCDAU,2		;GO	TO LINE 2
@@ -463,28 +475,22 @@ SUB64	MOVLW	D'6'		;SUBTRACT 6
 		SUBWF	FSR,1
 		BCF		LCDAU,2		;GO BACK TO LINE 1
 		BCF		STAR,5
-ENDJL	MOVFW	LCDAU
-		CALL	ET
-		MOVFW	LCDAL
-		CALL	ET
+ENDJL	CALL	SLCDA		;SET LCD ADDRESS
 		GOTO	END5		
-		
-GOR		BTFSC	LCDAL,2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;		
+GOR		BTFSC	LCDAL,2		;GO RIGHT (RIGHT PB ACTION)
 		GOTO	CHECK
 		GOTO	INCR	
 
 CHECK	BTFSC	LCDAL,0
 		GOTO	BUZZER
 
-INCR	INCF	FSR
-		INCF	LCDAL
-		MOVFW	LCDAU
-		CALL	ET
-		MOVFW	LCDAL
-		CALL	ET
-		GOTO	END5
+INCR	INCF	FSR,F
+		INCF	LCDAL,F
+		CALL	SLCDA		;SET LCD ADDRESS
+		GOTO	END5 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-GOL		BTFSS	LCDAL,2
+GOL		BTFSS	LCDAL,2		;GO LEFT (LEFT PB ACTION)
 		GOTO	CHECKL1
 		GOTO	DECR	
 
@@ -497,16 +503,18 @@ CHECKL2	BTFSS	LCDAL,0
 
 DECR	DECF	FSR
 		DECF	LCDAL
-		MOVFW	LCDAU
-		CALL	ET
-		MOVFW	LCDAL
-		CALL	ET
+		CALL	SLCDA
 		GOTO	END5
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-FLIP	MOVLW	B'10100'
+FLIP	BTFSC	INDF,7		;CHECK IF CARD WAS OPENED BEFORE
+		GOTO	BUZZER		
+		MOVLW	B'10100'	;FLIP CARD (CONFIRM PB ACTION)
 		CALL	ET	
-		MOVFW	INDF
+		MOVF	INDF,W
 		CALL	ET
+		CALL	LCDGH
+		BSF		INDF,7		;FLAG THE CARD AS OPENED
+		
 		GOTO	END5
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
