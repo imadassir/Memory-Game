@@ -80,7 +80,7 @@ INITROU CALL	DELAY
 	;DISPLAY ON/OFF CONTROL
 		MOVLW	b'00000'
 		CALL 	ET
-		MOVLW	b'01110'		;changed lsb to 0 to disable blinking
+		MOVLW	b'01100'		;changed lsb to 0 to disable blinking
 		CALL 	ET
 	;CLEAR DISPLAY
 		MOVLW	b'00000'
@@ -120,8 +120,8 @@ MMENU	BTFSS	PORTB,7
 		GOTO	OK0
 		BTFSS	PORTB,5		
 		GOTO	ACT1
-		BTFSS	PORTB,4
-		GOTO	BUZZER
+;		BTFSS	PORTB,4
+;		GOTO	BUZZER
 		GOTO	END5
 
 ACT1	BTFSS	STAR,1
@@ -277,6 +277,7 @@ INITPOS	MOVLW	B'10011'
 		MOVLW	D'0'
 		MOVWF	STAR
 		MOVWF	NCARDO
+		MOVWF	ERRC
 		MOVLW	B'10010000'
 		MOVWF	CARDO
 		MOVLW	B'00001100'
@@ -304,9 +305,6 @@ WLCM	CALL	PRINTSP
 		CALL	PRINTE
 		CALL	DELAY3S
 		CALL	CLEAR
-		BSF		INTCON,RBIE		;enable interrupts after welcome screen
-;		BSF		INTCON,T0IE
-		BSF		INTCON,GIE
 		RETURN
 
 MENU	CALL	PRINTM
@@ -327,11 +325,19 @@ MENU	CALL	PRINTM
 		MOVLW	B'00101'
 		CALL 	ET
 		CALL	PRINTST
+		BSF		INTCON,RBIE		;enable interrupts
+;		BSF		INTCON,T0IE
+		BSF		INTCON,GIE
 		RETURN
 
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MODE1	CALL	CLEAR
+		;DISPLAY ON/OFF CONTROL
+		MOVLW	b'00000'
+		CALL 	ET
+		MOVLW	b'01110'		;changed lsb to 0 to disable blinking
+		CALL 	ET
 		CALL	UTIL			;PRINT BOXES
 		CALL	PRINTSP
 		CALL	PRINTSP
