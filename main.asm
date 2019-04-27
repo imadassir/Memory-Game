@@ -183,7 +183,7 @@ SET1	BCF		STAR,7
 		CALL	MODE1
 		GOTO	END5		
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-INT1	BTFSS	PORTB,7			;INTERRUPT ROUTINES FOR MODE 1
+INT1	BTFSS	PORTB,7			;INTERRUPT ROUTINES
 		GOTO	FLIP
 		BTFSS	PORTB,6
 		CALL	JL
